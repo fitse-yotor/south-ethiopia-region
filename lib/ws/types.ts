@@ -9,7 +9,7 @@ export type Permission =
   | 'cms.access'
   | 'reports.system' | 'reports.library' | 'reports.cases' | 'reports.own'
   | 'appointments.manage' | 'events.manage'
-  | 'evidence.manage' | 'cases.assign' | 'cases.viewOffice' | 'cases.documents' | 'preports.view' | 'reports.citizen' | 'reports.finance' | 'reports.office';
+  | 'staff.manage' | 'evidence.manage' | 'cases.assign' | 'cases.viewOffice' | 'cases.documents' | 'preports.view' | 'reports.citizen' | 'reports.finance' | 'reports.office';
 
 export type Role = { id: string; name: string; description: string; permissions: Permission[]; system?: boolean };
 
@@ -110,6 +110,7 @@ export const OFFICES = ZONE_OFFICES;
 
 export const PERMISSIONS: { key: Permission; label: string; group: string }[] = [
   { key: 'users.manage', label: 'Create & manage users', group: 'Administration' },
+  { key: 'staff.manage', label: 'Create woreda accounts and post prosecutors to woredas (region)', group: 'Administration' },
   { key: 'roles.manage', label: 'Manage roles & permissions', group: 'Administration' },
   { key: 'settings.manage', label: 'System settings', group: 'Administration' },
   { key: 'audit.view', label: 'View audit log', group: 'Administration' },

@@ -6,14 +6,15 @@ import { ArrowLeft, BarChart3, BookOpen, Briefcase, Building2, ChevronDown, Eye,
 import { toast } from 'sonner';
 import { useWS } from '@/lib/ws/store';
 
-const DEMO = [
-  ['Super Admin', 'superadmin@ser-justice.demo', 'Admin@123'], ['Region Head', 'region.head@ser-justice.demo', 'Demo@123'], ['Zone Head (South Omo)', 'zone.head@ser-justice.demo', 'Demo@123'], ['Zone Head (Ari)', 'zone.head.ari@ser-justice.demo', 'Demo@123'],
-  ['Woreda Coordinator (Hamer)', 'coordinator.hamer@ser-justice.demo', 'Demo@123'], ['Woreda Coordinator (Jinka Town)', 'coordinator.jinka@ser-justice.demo', 'Demo@123'], ['Woreda Coordinator (Offa)', 'coordinator.offa@ser-justice.demo', 'Demo@123'],
-  ['Prosecutor (Jinka Town)', 'prosecutor@ser-justice.demo', 'Demo@123'], ['Prosecutor (Hamer)', 'dawit.alemu@ser-justice.demo', 'Demo@123'],
-  ['Library Head', 'library@ser-justice.demo', 'Demo@123'], ['Researcher', 'researcher@example.com', 'Demo@123'], ['Researcher (pending)', 'lidya.haile@example.com', 'Demo@123'],
-  ['Content Editor', 'editor@ser-justice.demo', 'Demo@123'], ['Complaint Officer', 'complaints@ser-justice.demo', 'Demo@123'],
-  ['Legal Aid Officer', 'legalaid@ser-justice.demo', 'Demo@123'], ['Finance Officer', 'finance@ser-justice.demo', 'Demo@123'], ['Auditor', 'auditor@ser-justice.demo', 'Demo@123'],
+const DEMO: [group: string, role: string, email: string, pw: string][] = [
+  ['Region', 'Super Admin', 'superadmin@ser-justice.demo', 'Admin@123'], ['Region', 'Region Head', 'region.head@ser-justice.demo', 'Demo@123'], ['Region', 'Auditor', 'auditor@ser-justice.demo', 'Demo@123'],
+  ['Zone', 'Zone Head · South Omo', 'zone.head@ser-justice.demo', 'Demo@123'], ['Zone', 'Zone Head · Ari', 'zone.head.ari@ser-justice.demo', 'Demo@123'],
+  ['Woreda', 'Coordinator · Hamer', 'coordinator.hamer@ser-justice.demo', 'Demo@123'], ['Woreda', 'Coordinator · Jinka Town', 'coordinator.jinka@ser-justice.demo', 'Demo@123'], ['Woreda', 'Coordinator · Offa', 'coordinator.offa@ser-justice.demo', 'Demo@123'],
+  ['Woreda', 'Prosecutor · Jinka Town', 'prosecutor@ser-justice.demo', 'Demo@123'], ['Woreda', 'Prosecutor · Hamer', 'dawit.alemu@ser-justice.demo', 'Demo@123'],
+  ['Services', 'Library Head', 'library@ser-justice.demo', 'Demo@123'], ['Services', 'Researcher', 'researcher@example.com', 'Demo@123'], ['Services', 'Researcher (pending)', 'lidya.haile@example.com', 'Demo@123'],
+  ['Services', 'Content Editor', 'editor@ser-justice.demo', 'Demo@123'], ['Services', 'Complaint Officer', 'complaints@ser-justice.demo', 'Demo@123'], ['Services', 'Legal Aid Officer', 'legalaid@ser-justice.demo', 'Demo@123'], ['Services', 'Finance Officer', 'finance@ser-justice.demo', 'Demo@123'],
 ];
+const GROUPS = ['Region', 'Zone', 'Woreda', 'Services'];
 
 function AuthLayout({ mode, children, aside }: { mode: 'login' | 'register'; children: React.ReactNode; aside: React.ReactNode }) {
   return <main className="au">
@@ -59,11 +60,12 @@ export function Login() {
     router.push(next && next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard');
   };
   return <AuthLayout mode="login" aside={<div className="au-pitch">
-    <h2>One secure portal for justice services, prosecution and research.</h2>
+    <h2>From woreda to region: one portal for prosecution, reports and legal awareness.</h2>
+    <div className="au-levels" aria-hidden><span>Region</span><i /><span>Zone</span><i /><span>Woreda</span></div>
     <ul className="au-features">
-      <li><Briefcase /><div><b>Prosecution portal</b>Cases, SLA monitoring and daily, weekly and monthly reporting.</div></li>
-      <li><BookOpen /><div><b>Digital library</b>Laws, research, manuals and training videos for researchers and staff.</div></li>
-      <li><BarChart3 /><div><b>Personal dashboards</b>Role-based reports with PDF and CSV export.</div></li>
+      <li><Briefcase /><div><b>Cases that follow the SLA</b>Coordinators assign cases, prosecutors report, zones and the region see their own picture.</div></li>
+      <li><BarChart3 /><div><b>Reports in one click</b>KPIs against regional targets, with PDF and CSV export.</div></li>
+      <li><BookOpen /><div><b>Know your rights, out loud</b>Legal guides in English and Amharic that can be read aloud, plus the digital library.</div></li>
     </ul>
   </div>}>
     <form onSubmit={submit} className="au-form">
@@ -77,7 +79,7 @@ export function Login() {
     </form>
     <div className="au-demo">
       <button type="button" className="au-demo-toggle" onClick={() => setDemo(!demo)} aria-expanded={demo}><ShieldCheck size={15} />Demo accounts – one-click sign in<ChevronDown size={15} className={demo ? 'up' : ''} /></button>
-      {demo && <div className="au-demo-grid">{DEMO.map(([r, e, p]) => <button key={e} type="button" onClick={() => { setEmail(e); setPw(p); submit(undefined, e, p); }}><b>{r}</b><small>{e}</small></button>)}</div>}
+      {demo && <div className="au-demo-groups">{GROUPS.map(g => <div key={g} className="au-demo-group"><h4>{g}</h4><div className="au-demo-grid">{DEMO.filter(x => x[0] === g).map(([, r, e, p]) => <button key={e} type="button" className={'g-' + g.toLowerCase()} onClick={() => { setEmail(e); setPw(p); submit(undefined, e, p); }}><b>{r}</b><small>{e}</small></button>)}</div></div>)}</div>}
     </div>
   </AuthLayout>;
 }

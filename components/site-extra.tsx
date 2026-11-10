@@ -10,6 +10,7 @@ import { sampleCases } from '@/lib/content';
 import { ChartCard, lastMonths, SLOT } from '@/components/ws/charts';
 import { Calendar, isoDay } from '@/components/ws/calendar';
 import { OmoMap } from '@/components/ws/omo-map';
+import { ListenBar, SpeakPoint } from '@/components/voice';
 
 type T = (en: string, am: string) => string;
 function Intro({ eyebrow = 'SOUTHERN ETHIOPIA JUSTICE', title, children }: { eyebrow?: string; title: string; children?: React.ReactNode }) {
@@ -118,7 +119,8 @@ export function FindOffice({ t }: { t: T }) {
 }
 
 /* ---------------- 4. Know your rights ---------------- */
-const GUIDES: { slug: string; icon: string; en: string; am: string; points: [string, string][] }[] = [
+/** `audio`: optional recorded files (e.g. /audio/rights/arrest-en.mp3). When absent the browser's speech voice reads the text. */
+const GUIDES: { slug: string; icon: string; en: string; am: string; points: [string, string][]; audio?: { en?: string; am?: string } }[] = [
   { slug: 'arrest', icon: '⚖️', en: 'Your rights when arrested', am: 'ሲያዙ ያለዎት መብቶች', points: [
     ['You must be told why you are arrested, in a language you understand.', 'የተያዙበትን ምክንያት በሚገባዎ ቋንቋ የማወቅ መብት አለዎት።'],
     ['You must be brought before a court within 48 hours.', 'በ48 ሰዓት ውስጥ ፍርድ ቤት የመቅረብ መብት አለዎት።'],
@@ -153,12 +155,14 @@ const GUIDES: { slug: string; icon: string; en: string; am: string; points: [str
 ];
 export function KnowYourRights({ t, slug }: { t: T; slug?: string }) {
   const g = GUIDES.find(x => x.slug === slug);
+  const [speaking, setSpeaking] = useState<{ lang: 'en' | 'am' | null; i: number }>({ lang: null, i: -1 });
   if (g) return <>
     <Link href="/know-your-rights" className="ws-back">← {t('All guides', 'ሁሉም መመሪያዎች')}</Link>
     <article className="panel sp-guide">
       <div className="sp-guide-icon" aria-hidden>{g.icon}</div>
       <h1>{t(g.en, g.am)}</h1><p className="ws-sub" lang="am">{g.am}</p>
-      <ol>{g.points.map(([en, am], i) => <li key={i}><p>{en}</p><p lang="am" className="am">{am}</p></li>)}</ol>
+      <ListenBar title={{ en: g.en, am: g.am }} points={g.points.map(([en, am]) => ({ en, am }))} audio={g.audio} onCurrent={(lang, i) => setSpeaking({ lang, i })} />
+      <ol>{g.points.map(([en, am], i) => <li key={i} className={speaking.i === i ? 'speaking' : undefined}><div className="rp-line"><p>{en}</p><SpeakPoint line={en} lang="en" /></div><div className="rp-line"><p lang="am" className="am">{am}</p><SpeakPoint line={am} lang="am" /></div></li>)}</ol>
       <div className="ws-form-actions sp-noprint">
         <button className="ws-btn ghost" onClick={() => window.print()}><Printer size={16} />{t('Print', 'አትም')}</button>
         <button className="ws-btn" onClick={async () => { const url = location.href; try { if (navigator.share) await navigator.share({ title: g.en, url }); else { await navigator.clipboard.writeText(url); toast.success('Link copied'); } } catch { /* cancelled */ } }}><Share2 size={16} />{t('Share', 'አጋራ')}</button>
@@ -167,8 +171,8 @@ export function KnowYourRights({ t, slug }: { t: T; slug?: string }) {
     </article>
   </>;
   return <>
-    <Intro eyebrow={t('LEGAL AWARENESS', 'የሕግ ግንዛቤ')} title={t('Know your rights', 'መብትዎን ይወቁ')}>{t('Short guides in English and Amharic. Print them or share them with your community.', 'በእንግሊዝኛና በአማርኛ አጫጭር መመሪያዎች። ያትሙ ወይም ለማህበረሰብዎ ያጋሩ።')}</Intro>
-    <div className="sp-guides">{GUIDES.map(x => <Link key={x.slug} href={'/know-your-rights/' + x.slug} className="panel"><span aria-hidden>{x.icon}</span><h3>{x.en}</h3><p lang="am">{x.am}</p><em>{x.points.length} {t('key points', 'ዋና ነጥቦች')} →</em></Link>)}</div>
+    <Intro eyebrow={t('LEGAL AWARENESS', 'የሕግ ግንዛቤ')} title={t('Know your rights', 'መብትዎን ይወቁ')}>{t('Short guides in English and Amharic. Listen to them read aloud, print them or share them with your community.', 'በእንግሊዝኛና በአማርኛ አጫጭር መመሪያዎች። ያዳምጧቸው፣ ያትሟቸው ወይም ለማህበረሰብዎ ያጋሩ።')}</Intro>
+    <div className="sp-guides">{GUIDES.map(x => <Link key={x.slug} href={'/know-your-rights/' + x.slug} className="panel"><span aria-hidden>{x.icon}</span><h3>{x.en}</h3><p lang="am">{x.am}</p><em>{x.points.length} {t('key points', 'ዋና ነጥቦች')} · 🔊 {t('listen', 'ያዳምጡ')} →</em></Link>)}</div>
     <Sample />
   </>;
 }

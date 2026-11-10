@@ -5,6 +5,7 @@ import type { KpiTargets, Appointment, Case, CaseDoc, CaseStatus, Hearing, LibCa
 import { EV, type AlertSettings, type CustodyAction, type EvidenceKind } from './types';
 import { caseRecipients, defaultNotify, queueFor, runReminders } from './alerts';
 import { custodyClosed, lastEntry } from './evidence';
+import { newWoredaAccount, planPost, STAFF_ROLES } from './staffing';
 import { inScope, scopeOfficeName, unitName } from './org';
 
 const KEY = 'serjp-workspace', SESSION = 'serjp-session';
@@ -346,6 +347,31 @@ function useWorkspaceState() {
         setData(withAudit(d, me, 'Restored data from a backup file'));
         return { ok: true };
       } catch { return { ok: false, error: 'Could not read the backup file.' }; }
+    },
+
+    // ---------- region staffing: woreda accounts and prosecutor postings ----------
+    createWoredaAccount(f: { woredaId: string; roleId: string; name: string; email: string; phone: string }): Result {
+      if (!data || !user) return { ok: false, error: 'Not ready' };
+      const r = newWoredaAccount(data, user, can, f);
+      if (!r.ok) return r;
+      const id = uid('u');
+      mutate(d => withAudit({ ...d, users: [...d.users, { ...r.user, id, createdAt: nowIso() }] }, me, `Created ${d.roles.find(x => x.id === r.user.roleId)?.name} account for ${r.user.name} in ${r.user.office}`));
+      return { ok: true, id };
+    },
+    postProsecutor(userId: string, woredaId: string): Result {
+      if (!data || !user) return { ok: false, error: 'Not ready' };
+      const r = planPost(data, user, can, userId, woredaId);
+      if (!r.ok) return r;
+      const to = unitName(woredaId);
+      mutate(d => notify(withAudit({ ...d, users: d.users.map(u => u.id === userId ? { ...u, scope: { level: 'woreda' as const, id: woredaId }, office: to } : u) }, me, `Posted prosecutor ${r.user.name} to ${to}${r.from ? ' (from ' + unitName(r.from) + ')' : ''}`),
+        [userId, ...staffFor(d, woredaId, ['cases.assign'])], `${r.user.name} was posted to ${to} by the Region.`, '/dashboard/cases', EV.case));
+      return { ok: true };
+    },
+    setStaffStatus(userId: string, status: User['status']): Result {
+      const t = data?.users.find(x => x.id === userId);
+      if (!t || !user || !can('staff.manage') || !(STAFF_ROLES as readonly string[]).includes(t.roleId) || t.scope?.level !== 'woreda' || !inScope(user.scope, t.scope.id)) return { ok: false, error: 'You cannot change this account.' };
+      mutate(d => withAudit({ ...d, users: d.users.map(x => x.id === userId ? { ...x, status } : x) }, me, `${status === 'active' ? 'Activated' : 'Deactivated'} woreda account ${t.name}`));
+      return { ok: true };
     },
 
     // ---------- evidence register (append-only chain of custody) ----------

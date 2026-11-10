@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Activity, Bell, BellRing, Gauge, Layers, Package, BookOpen, BookUp, Briefcase, CalendarCheck, CalendarDays, ChartColumn, CheckSquare, ClipboardList, FilePlus2, FolderCog, Globe, KeyRound, LayoutDashboard,
+  Activity, Bell, BellRing, Building2, Gauge, Layers, Package, BookOpen, BookUp, Briefcase, CalendarCheck, CalendarDays, ChartColumn, CheckSquare, ClipboardList, FilePlus2, FolderCog, Globe, KeyRound, LayoutDashboard,
   ListTodo, LogOut, Map as MapIcon, Newspaper, Scale, ScrollText, Settings2, ShieldCheck, Shuffle, Star, Timer, TrendingUp, UserCircle2, Users, Wallet,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,6 +26,7 @@ import { KpiPage } from './kpi-page';
 import { EvidencePage } from './evidence';
 import { AlertsPage } from './alerts';
 import { AnalyticsPage } from './region-analytics';
+import { StaffingPage } from './staffing';
 import { reportsFor } from '@/lib/ws/reports';
 import { scopeOfficeName } from '@/lib/ws/org';
 
@@ -84,6 +85,7 @@ export default function Workspace() {
       { href: '/dashboard/periodic-reports', label: can('preports.review') || can('preports.view') ? 'Prosecutor reports' : 'My reports', icon: <ClipboardList />, show: can('preports.submit') || can('preports.review') || can('preports.view'), badge: can('preports.review') ? pendingReview : 0 },
     ]],
     ['Oversight', [
+      { href: '/dashboard/staffing', label: 'Staffing & woreda accounts', icon: <Building2 />, show: can('staff.manage') },
       { href: '/dashboard/analytics', label: 'Zone & region analytics', icon: <Layers />, show: can('cases.viewAll') || can('cases.viewOffice') },
       { href: '/dashboard/performance', label: 'Performance', icon: <TrendingUp />, show: can('cases.viewAll') || can('cases.viewOffice') },
       { href: '/dashboard/workload', label: 'Workload balancing', icon: <Shuffle />, show: can('cases.assign') },
@@ -127,6 +129,7 @@ export default function Workspace() {
     case 'tasks': content = <TasksPage />; break;
     case 'kpi': content = deny(can('cases.viewAll') || can('cases.viewOwn') || can('cases.viewOffice'), <KpiPage />); break;
     case 'evidence': content = deny(can('evidence.manage') || can('cases.viewAll') || can('cases.viewOffice'), <EvidencePage />); break;
+    case 'staffing': content = deny(can('staff.manage'), <StaffingPage />); break;
     case 'analytics': content = deny(can('cases.viewAll') || can('cases.viewOffice'), <AnalyticsPage />); break;
     case 'alerts': content = deny(can('settings.manage'), <AlertsPage />); break;
     case 'performance': content = deny(can('cases.viewAll') || can('cases.viewOffice'), <PerformancePage />); break;

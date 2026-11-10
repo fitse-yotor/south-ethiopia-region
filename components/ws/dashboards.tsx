@@ -5,6 +5,7 @@ import { isOverdue, slaState, useWS } from '@/lib/ws/store';
 import { CASE_STATUSES } from '@/lib/ws/types';
 import { computeKpis, groupKpis } from '@/lib/ws/kpi';
 import { scopeLabel, unitName, zoneOfWoreda } from '@/lib/ws/org';
+import { Hero, QuickActions } from './dash-parts';
 import { Bars, DocIcon, Empty, PageHead, Panel, Pill, SlaPill, Stat, ago, fmtDate } from './ui';
 
 export function Dashboard() {
@@ -29,9 +30,8 @@ export function Dashboard() {
   const myNotes = data.notifications.filter(n => n.userId === user.id).slice(0, 5);
 
   return <>
-    <PageHead eyebrow={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} title={`${greet}, ${user.name.replace(/^Dr\.\s*/, '').split(' ')[0]}`}>
-      Your personal {role?.name} dashboard{user.scope ? <> for <b>{scopeLabel(user.scope)}</b></> : null}.
-    </PageHead>
+    <Hero greet={greet} firstName={user.name.replace(/^Dr\.\s*/, '').split(' ')[0]} overdue={overdue.length} hearingsToday={data.hearings.filter(h => h.date === new Date().toISOString().slice(0, 10) && scope.some(c => c.id === h.caseId)).length} unread={data.notifications.filter(n => n.userId === user.id && !n.read).length} />
+    <QuickActions />
 
     <div className="ws-stats">
       {superAdmin && <>
